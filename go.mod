@@ -9,7 +9,7 @@ require (
 	github.com/Potterli20/socks5-fork v0.0.0-20260428220418-2597904df3a1
 	github.com/Potterli20/sqlite v0.0.0-20260427080138-758b5b838e60
 	github.com/database64128/tfo-go/v2 v2.3.4-0.20260414152113-bbdb9fa2429c
-	github.com/go-sql-driver/mysql v1.9.3
+	github.com/go-sql-driver/mysql v1.10.0
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
 	github.com/refraction-networking/utls v1.8.3-0.20260301010127-aa6edf4b11af
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
