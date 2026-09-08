@@ -8,8 +8,8 @@ github.com/Potterli20/socks5-fork v0.0.0-20260905102238-c9e2fcd331c3 h1:bwLTU8a9
 github.com/Potterli20/socks5-fork v0.0.0-20260905102238-c9e2fcd331c3/go.mod h1:MlWkVEftbAFAP7CfVOvUDMiHwj8iW+4CL0ubqR5S9yk=
 github.com/Potterli20/sqlite v0.0.0-20260902181149-8dfd01680a61 h1:TkhfNLBQ2/pmML6RygvmRcvGhhKx2h3o8i/GwE+7uN0=
 github.com/Potterli20/sqlite v0.0.0-20260902181149-8dfd01680a61/go.mod h1:ujg7FBZG05Fisffj0+yTERDu4hjqY+7ZEJ/o7wp4DEc=
-github.com/andybalholm/brotli v1.2.4-0.20260901021709-621e17e01dee h1:jhIj9kvYlP3R8ROzT114hzkeVhsU075hG1IbiFX0a9Q=
-github.com/andybalholm/brotli v1.2.4-0.20260901021709-621e17e01dee/go.mod h1:rzTDkvFWvIrjDXZHkuS16NPggd91W3kUSvPlQ1pLaKY=
+github.com/andybalholm/brotli v1.2.4-0.20260907231443-a3e65284bcf4 h1:6z7a1GbvAJ/4fhTEKhLwnfjhGXnHYjDyd6+Yc5lvj4Q=
+github.com/andybalholm/brotli v1.2.4-0.20260907231443-a3e65284bcf4/go.mod h1:rzTDkvFWvIrjDXZHkuS16NPggd91W3kUSvPlQ1pLaKY=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/cloudflare/circl v1.6.5 h1:O64F26HEqNhznd/hrC5KZXVKYuKM2rx4deZDTc4ihQA=
@@ -90,8 +90,8 @@ github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b h1:7bFUKsVEo0LmiYfbE
 github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f h1:iy2JRioxmUpoJ3SzbFPyTxHZMbR/rSHP7dOOgYaq1O8=
 github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f/go.mod h1:DsJblcWDGt76+FVqBVwbwRhxyyNJsGV48gJLch0OOWI=
-github.com/xtls/xray-core v1.260327.1-0.20260907211441-6ce8dc53e798 h1:ldrUo+FR69/9NDbhJvDp8vhusvoc7bj0habTQEH4P+0=
-github.com/xtls/xray-core v1.260327.1-0.20260907211441-6ce8dc53e798/go.mod h1:56jrEsuJ6cNMBL+kHI1K29S5fZmcDt+piZH7w37Azes=
+github.com/xtls/xray-core v1.260327.1-0.20260908033125-3e2f040cd80b h1:qkHYNZQtZkGibpoDK3/hEaz6g14vyCCao8NBcbwVWDU=
+github.com/xtls/xray-core v1.260327.1-0.20260908033125-3e2f040cd80b/go.mod h1:56jrEsuJ6cNMBL+kHI1K29S5fZmcDt+piZH7w37Azes=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 h1:SpG238mmCez9TdHDu0Qba+ol57R+/pUxvJsDXT22Fug=
