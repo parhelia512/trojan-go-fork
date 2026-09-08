@@ -5,23 +5,23 @@ go 1.27.0
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260903022042-21780277f21e
-	github.com/Potterli20/socks5-fork v0.0.0-20260908040550-bad2e929234f
-	github.com/Potterli20/sqlite v0.0.0-20260902181149-8dfd01680a61
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260908181247-fbf7f7bbaad8
+	github.com/Potterli20/socks5-fork v0.0.0-20260908162551-0856b00c5ee7
+	github.com/Potterli20/sqlite v0.0.0-20260908180946-317bbb7b6b61
 	github.com/apernet/quic-go v0.61.1-0.20260806010916-184d081eef3e
 	github.com/coder/websocket v1.8.15
-	github.com/database64128/tfo-go/v2 v2.4.1-0.20260826113932-498aa0d59c9b
+	github.com/database64128/tfo-go/v2 v2.4.1-0.20260908133757-4e2e41017204
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/refraction-networking/utls v1.8.3-0.20260802151714-23b1dac19c06
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.12.1
 	github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b
-	github.com/xtls/xray-core v1.260327.1-0.20260908094724-37ceb8b4b65e
-	golang.org/x/crypto v0.56.0
-	golang.org/x/net v0.58.0
-	golang.org/x/sys v0.47.0
-	golang.org/x/term v0.45.0
-	golang.org/x/time v0.15.0
+	github.com/xtls/xray-core v1.260327.1-0.20260908184538-c26d2eda240f
+	golang.org/x/crypto v0.57.0
+	golang.org/x/net v0.59.0
+	golang.org/x/sys v0.48.0
+	golang.org/x/term v0.46.0
+	golang.org/x/time v0.16.0
 	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.12
 	gopkg.in/yaml.v3 v3.0.1
@@ -41,6 +41,7 @@ require (
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/klauspost/compress v1.19.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
@@ -51,9 +52,9 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/exp v0.0.0-20260820142414-ca536658362e // indirect
-	golang.org/x/mod v0.40.0 // indirect
-	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/text v0.41.0 // indirect
+	golang.org/x/mod v0.41.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260908043556-f8649ddbbfe6 // indirect
 	modernc.org/libc v1.75.7 // indirect
