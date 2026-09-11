@@ -30,7 +30,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/andybalholm/brotli v1.2.4-0.20260907231443-a3e65284bcf4 // indirect
+	github.com/andybalholm/brotli v1.2.4 // indirect
 	github.com/database64128/netx-go v0.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
