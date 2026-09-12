@@ -161,9 +161,7 @@ func TestTrojanConcurrentConnections(t *testing.T) {
 	var successCount atomic.Int32
 
 	for i := range numGoroutines {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
+		wg.Go(func() {
 			conn, err := c.DialConn(&tunnel.Address{
 				DomainName:  "example.com",
 				AddressType: tunnel.DomainName,
@@ -173,12 +171,12 @@ func TestTrojanConcurrentConnections(t *testing.T) {
 			}
 			defer conn.Close()
 
-			data := fmt.Appendf(nil, "test-data-%d", id)
+			data := fmt.Appendf(nil, "test-data-%d", i)
 			if _, err := conn.Write(data); err != nil {
 				return
 			}
 			successCount.Add(1)
-		}(i)
+		})
 	}
 
 	wg.Wait()

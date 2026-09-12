@@ -160,15 +160,13 @@ func TestHighConcurrencyAuthenticator(t *testing.T) {
 
 	var wg sync.WaitGroup
 	for i := range 1000 {
-		wg.Add(1)
-		go func(idx int) {
-			defer wg.Done()
+		wg.Go(func() {
 			_, user := auth.AuthUser(hash)
 			if user != nil {
-				user.AddIP(fmt.Sprintf("192.168.0.%d", idx%10))
+				user.AddIP(fmt.Sprintf("192.168.0.%d", i%10))
 			}
 			time.Sleep(time.Millisecond)
-		}(i)
+		})
 	}
 
 	wg.Wait()
@@ -206,10 +204,8 @@ func TestConcurrentUserOperations(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for i := range 10 {
-		wg.Add(1)
-		go func(userIdx int) {
-			defer wg.Done()
-			hash := fmt.Sprintf("user-%d", userIdx)
+		wg.Go(func() {
+			hash := fmt.Sprintf("user-%d", i)
 			if err := auth.AddUser(hash); err != nil {
 				t.Logf("Failed to add user %s: %v", hash, err)
 				return
@@ -218,7 +214,7 @@ func TestConcurrentUserOperations(t *testing.T) {
 			for j := range 50 {
 				_, user := auth.AuthUser(hash)
 				if user != nil {
-					user.AddIP(fmt.Sprintf("10.0.%d.%d", userIdx, j%10))
+					user.AddIP(fmt.Sprintf("10.0.%d.%d", i, j%10))
 				}
 				time.Sleep(5 * time.Millisecond)
 			}
@@ -226,7 +222,7 @@ func TestConcurrentUserOperations(t *testing.T) {
 			if err := auth.DelUser(hash); err != nil {
 				t.Logf("Failed to delete user %s: %v", hash, err)
 			}
-		}(i)
+		})
 	}
 
 	wg.Wait()

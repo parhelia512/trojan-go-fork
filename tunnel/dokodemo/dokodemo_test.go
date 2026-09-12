@@ -33,9 +33,6 @@ func TestDokodemo(t *testing.T) {
 	conn1.Close()
 	conn2.Close()
 
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-
 	packet1, err := net.ListenPacket("udp", "")
 	common.Must(err)
 	common.Must2(packet1.(*net.UDPConn).WriteToUDP([]byte("hello1"), &net.UDPAddr{
@@ -77,20 +74,17 @@ func TestDokodemo(t *testing.T) {
 	}
 	fmt.Println(n, m, string(buf[:n]))
 
-	wg = sync.WaitGroup{}
-	wg.Add(2)
-	go func() {
+	wg := sync.WaitGroup{}
+	wg.Go(func() {
 		if !util.CheckPacket(packet3, packet4) {
 			t.Fail()
 		}
-		wg.Done()
-	}()
-	go func() {
+	})
+	wg.Go(func() {
 		if !util.CheckPacket(packet1, packet2) {
 			t.Fail()
 		}
-		wg.Done()
-	}()
+	})
 	wg.Wait()
 	s.Close()
 }

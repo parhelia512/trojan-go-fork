@@ -20,7 +20,9 @@ func buildNodes(ctx context.Context, nodeConfigList []NodeConfig) (map[string]*p
 			return nil, common.NewError("invalid protocol name:" + nodeCfg.Protocol)
 		}
 		data, err := yaml.Marshal(nodeCfg.Config)
-		common.Must(err)
+		if err != nil {
+			return nil, common.NewError("failed to marshal node config for " + nodeCfg.Tag).Base(err)
+		}
 		nodeContext, err := config.WithYAMLConfig(ctx, data)
 		if err != nil {
 			return nil, common.NewError("failed to parse config data for " + nodeCfg.Tag + " with protocol" + nodeCfg.Protocol).Base(err)

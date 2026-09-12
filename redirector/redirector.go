@@ -3,7 +3,6 @@ package redirector
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"net"
 	"reflect"
@@ -70,7 +69,7 @@ func injectForwardedHeader(inbound net.Conn, outbound net.Conn, clientIP string)
 
 		if headerBuf.Len() > 65536 {
 			outbound.Write(headerBuf.Bytes())
-			return fmt.Errorf("headers too large")
+			return common.NewError("headers too large")
 		}
 	}
 

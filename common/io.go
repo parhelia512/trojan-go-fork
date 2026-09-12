@@ -56,11 +56,13 @@ func (r *RewindReader) Discard(n int) (int, error) {
 	if n < 128 {
 		return r.Read(buf[:n])
 	}
-	for discarded := 0; discarded+128 < n; discarded += 128 {
+	discarded := 0
+	for range n / 128 {
 		_, err := r.Read(buf[:])
 		if err != nil {
 			return discarded, err
 		}
+		discarded += 128
 	}
 	if rest := n % 128; rest != 0 {
 		return r.Read(buf[:rest])

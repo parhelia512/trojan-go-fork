@@ -36,14 +36,12 @@ func TestTransport(t *testing.T) {
 	common.Must(err)
 
 	wg := sync.WaitGroup{}
-	wg.Add(1)
 	var conn1, conn2 net.Conn
-	go func() {
+	wg.Go(func() {
 		var acceptErr error
 		conn2, acceptErr = s.AcceptConn(nil)
 		common.Must(acceptErr)
-		wg.Done()
-	}()
+	})
 	conn1, err = c.DialConn(nil, nil)
 	common.Must(err)
 

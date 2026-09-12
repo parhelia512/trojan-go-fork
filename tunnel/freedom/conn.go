@@ -35,7 +35,9 @@ func (c *PacketConn) ReadWithMetadata(p []byte) (int, *tunnel.Metadata, error) {
 		return 0, nil, err
 	}
 	address, err := tunnel.NewAddressFromAddr("udp", addr.String())
-	common.Must(err)
+	if err != nil {
+		return 0, nil, common.NewError("freedom failed to parse packet address").Base(err)
+	}
 	metadata := &tunnel.Metadata{
 		Address: address,
 	}
@@ -67,7 +69,9 @@ func (c *SocksPacketConn) WriteWithMetadata(payload []byte, metadata *tunnel.Met
 	buf := bytes.NewBuffer(make([]byte, 0, MaxPacketSize))
 	buf.Write([]byte{0, 0, 0}) // RSV, FRAG
 	_, err := metadata.Address.WriteTo(buf)
-	common.Must(err)
+	if err != nil {
+		return 0, common.NewError("freedom failed to write socks address").Base(err)
+	}
 	buf.Write(payload)
 	_, err = c.PacketConn.WriteTo(buf.Bytes(), c.socksAddr)
 	if err != nil {

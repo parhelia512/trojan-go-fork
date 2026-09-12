@@ -112,7 +112,9 @@ func (o *easy) Handle() error {
 	}
 
 	configJSON, err := json.Marshal(&config)
-	common.Must(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	log.Info("generated config:")
 	log.Info(string(configJSON))
 	p, err := proxy.NewProxyFromConfigData(configJSON, true)

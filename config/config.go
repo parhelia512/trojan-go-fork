@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"encoding/json"
+	"maps"
 	"sync"
 
 	"gopkg.in/yaml.v3"
@@ -25,32 +26,36 @@ func RegisterConfigCreator(name string, creator Creator) {
 }
 
 func parseJSON(data []byte) (map[string]any, error) {
-	result := make(map[string]any)
 	mu.RLock()
-	for name, creator := range creators {
+	creatorsSnapshot := make(map[string]Creator, len(creators))
+	maps.Copy(creatorsSnapshot, creators)
+	mu.RUnlock()
+
+	result := make(map[string]any)
+	for name, creator := range creatorsSnapshot {
 		config := creator()
 		if err := json.Unmarshal(data, config); err != nil {
-			mu.RUnlock()
 			return nil, err
 		}
 		result[name] = config
 	}
-	mu.RUnlock()
 	return result, nil
 }
 
 func parseYAML(data []byte) (map[string]any, error) {
-	result := make(map[string]any)
 	mu.RLock()
-	for name, creator := range creators {
+	creatorsSnapshot := make(map[string]Creator, len(creators))
+	maps.Copy(creatorsSnapshot, creators)
+	mu.RUnlock()
+
+	result := make(map[string]any)
+	for name, creator := range creatorsSnapshot {
 		config := creator()
 		if err := yaml.Unmarshal(data, config); err != nil {
-			mu.RUnlock()
 			return nil, err
 		}
 		result[name] = config
 	}
-	mu.RUnlock()
 	return result, nil
 }
 

@@ -29,6 +29,7 @@ type Proxy struct {
 	bufSize int
 	bufPool *boundedBufPool
 	wg      sync.WaitGroup
+	logFile *os.File
 }
 
 // boundedBufPool 带驻留数量上限的转发 buffer 池：
@@ -85,6 +86,9 @@ func (p *Proxy) Close() error {
 	p.sink.Close()
 	for _, source := range p.sources {
 		source.Close()
+	}
+	if p.logFile != nil {
+		p.logFile.Close()
 	}
 	return nil
 }
@@ -305,12 +309,22 @@ func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
 		return nil, common.NewError("unknown proxy type: " + cfg.RunType)
 	}
 	log.SetLogLevel(log.LogLevel(cfg.LogLevel))
+	var logFile *os.File
 	if cfg.LogFile != "" {
 		file, err := os.OpenFile(cfg.LogFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
 		if err != nil {
 			return nil, common.NewError("failed to open log file").Base(err)
 		}
+		logFile = file
 		log.SetOutput(file)
 	}
-	return create(ctx)
+	p, err := create(ctx)
+	if err != nil {
+		if logFile != nil {
+			logFile.Close()
+		}
+		return nil, err
+	}
+	p.logFile = logFile
+	return p, nil
 }

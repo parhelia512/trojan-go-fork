@@ -181,7 +181,9 @@ func (s *Server) associate(conn net.Conn, addr *tunnel.Address) error {
 	relayAddr := tunnel.NewAddressFromHostPort("udp", udpAddr.IP.String(), udpAddr.Port)
 	buf := bytes.NewBuffer([]byte{0x05, 0x00, 0x00})
 	_, err := relayAddr.WriteTo(buf)
-	common.Must(err)
+	if err != nil {
+		return common.NewError("socks failed to write relay address").Base(err)
+	}
 	_, err = conn.Write(buf.Bytes())
 	return err
 }

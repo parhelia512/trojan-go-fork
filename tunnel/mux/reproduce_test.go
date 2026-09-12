@@ -92,9 +92,7 @@ func TestStickyConnConcurrentSessions(t *testing.T) {
 
 	var wg sync.WaitGroup
 	for i := range numSessions {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
+		wg.Go(func() {
 			stream, err := clientSessions[i].OpenStream()
 			if err != nil {
 				t.Logf("open stream %d failed: %v", i, err)
@@ -114,7 +112,7 @@ func TestStickyConnConcurrentSessions(t *testing.T) {
 				return
 			}
 			stream.Close()
-		}(i)
+		})
 	}
 
 	serverDone := make(chan struct{})

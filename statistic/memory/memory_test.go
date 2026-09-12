@@ -154,7 +154,7 @@ func BenchmarkMemoryUsage(b *testing.B) {
 	m1 := runtime.MemStats{}
 	m2 := runtime.MemStats{}
 	runtime.ReadMemStats(&m1)
-	for i := 0; i < b.N; i++ {
+	for i := range b.N {
 		hash, err := common.HashPassword("hash" + strconv.Itoa(i))
 		common.Must(err)
 		common.Must(auth.AddUser(hash))

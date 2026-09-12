@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 // LogLevel how much log to dump
@@ -40,7 +41,17 @@ type Logger interface {
 	SetOutput(io.Writer)
 }
 
-var logger Logger = &EmptyLogger{}
+var (
+	loggerMu sync.RWMutex
+	logger   Logger = &EmptyLogger{}
+)
+
+// getLogger 返回当前 logger 的快照，用于并发安全地读取全局 logger。
+func getLogger() Logger {
+	loggerMu.RLock()
+	defer loggerMu.RUnlock()
+	return logger
+}
 
 type EmptyLogger struct{}
 
@@ -73,62 +84,64 @@ func (l *EmptyLogger) Tracef(format string, v ...any) {}
 func (l *EmptyLogger) SetOutput(w io.Writer) {}
 
 func Error(v ...any) {
-	logger.Error(SanitizeLogInput(v)...)
+	getLogger().Error(SanitizeLogInput(v)...)
 }
 
 func Errorf(format string, v ...any) {
-	logger.Errorf(SanitizeString(format), SanitizeLogInput(v)...)
+	getLogger().Errorf(SanitizeString(format), SanitizeLogInput(v)...)
 }
 
 func Warn(v ...any) {
-	logger.Warn(SanitizeLogInput(v)...)
+	getLogger().Warn(SanitizeLogInput(v)...)
 }
 
 func Warnf(format string, v ...any) {
-	logger.Warnf(SanitizeString(format), SanitizeLogInput(v)...)
+	getLogger().Warnf(SanitizeString(format), SanitizeLogInput(v)...)
 }
 
 func Info(v ...any) {
-	logger.Info(SanitizeLogInput(v)...)
+	getLogger().Info(SanitizeLogInput(v)...)
 }
 
 func Infof(format string, v ...any) {
-	logger.Infof(SanitizeString(format), SanitizeLogInput(v)...)
+	getLogger().Infof(SanitizeString(format), SanitizeLogInput(v)...)
 }
 
 func Debug(v ...any) {
-	logger.Debug(SanitizeLogInput(v)...)
+	getLogger().Debug(SanitizeLogInput(v)...)
 }
 
 func Debugf(format string, v ...any) {
-	logger.Debugf(SanitizeString(format), SanitizeLogInput(v)...)
+	getLogger().Debugf(SanitizeString(format), SanitizeLogInput(v)...)
 }
 
 func Trace(v ...any) {
-	logger.Trace(SanitizeLogInput(v)...)
+	getLogger().Trace(SanitizeLogInput(v)...)
 }
 
 func Tracef(format string, v ...any) {
-	logger.Tracef(SanitizeString(format), SanitizeLogInput(v)...)
+	getLogger().Tracef(SanitizeString(format), SanitizeLogInput(v)...)
 }
 
 func Fatal(v ...any) {
-	logger.Fatal(SanitizeLogInput(v)...)
+	getLogger().Fatal(SanitizeLogInput(v)...)
 }
 
 func Fatalf(format string, v ...any) {
-	logger.Fatalf(SanitizeString(format), SanitizeLogInput(v)...)
+	getLogger().Fatalf(SanitizeString(format), SanitizeLogInput(v)...)
 }
 
 func SetLogLevel(level LogLevel) {
-	logger.SetLogLevel(level)
+	getLogger().SetLogLevel(level)
 }
 
 func SetOutput(w io.Writer) {
-	logger.SetOutput(w)
+	getLogger().SetOutput(w)
 }
 
 func RegisterLogger(l Logger) {
+	loggerMu.Lock()
+	defer loggerMu.Unlock()
 	logger = l
 }
 
@@ -148,17 +161,18 @@ func Logf(level LogLevel, format string, v ...any) {
 	}
 	sanitizedFormat := SanitizeString(format)
 	sanitized := SanitizeLogInput(v)
+	l := getLogger()
 	switch level {
 	case DebugLevel:
-		logger.Debugf(sanitizedFormat, sanitized...)
+		l.Debugf(sanitizedFormat, sanitized...)
 	case InfoLevel:
-		logger.Infof(sanitizedFormat, sanitized...)
+		l.Infof(sanitizedFormat, sanitized...)
 	case WarnLevel:
-		logger.Warnf(sanitizedFormat, sanitized...)
+		l.Warnf(sanitizedFormat, sanitized...)
 	case ErrorLevel:
-		logger.Errorf(sanitizedFormat, sanitized...)
+		l.Errorf(sanitizedFormat, sanitized...)
 	case FatalLevel:
-		logger.Fatalf(sanitizedFormat, sanitized...)
+		l.Fatalf(sanitizedFormat, sanitized...)
 	}
 }
 
