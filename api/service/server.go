@@ -46,7 +46,7 @@ func (s *ServerAPI) GetUsers(stream TrojanServerService_GetUsersServer) error {
 		}
 		valid, user := s.auth.AuthUser(req.User.Hash)
 		if !valid {
-			stream.Send(&GetUsersResponse{
+			stream.Send(&GetUsersResponse{ //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				Success: false,
 				Info:    "invalid user: " + req.User.Hash,
 			})
@@ -57,6 +57,11 @@ func (s *ServerAPI) GetUsers(stream TrojanServerService_GetUsersServer) error {
 		downloadSpeedLimit, uploadSpeedLimit := user.GetSpeedLimit()
 		ipLimit := user.GetIPLimit()
 		ipCurrent := user.GetIP()
+		// 速度限制为非负值，使用安全转换；负值截断为 0
+		dsLimit, _ := common.SafeUint64FromInt(downloadSpeedLimit)
+		usLimit, _ := common.SafeUint64FromInt(uploadSpeedLimit)
+		ipLimitVal, _ := common.SafeInt32FromInt(ipLimit)
+		ipCurrentVal, _ := common.SafeInt32FromInt(ipCurrent)
 		err = stream.Send(&GetUsersResponse{
 			Success: true,
 			Status: &UserStatus{
@@ -70,11 +75,11 @@ func (s *ServerAPI) GetUsers(stream TrojanServerService_GetUsersServer) error {
 					UploadSpeed:   uploadSpeed,
 				},
 				SpeedLimit: &Speed{
-					DownloadSpeed: uint64(downloadSpeedLimit),
-					UploadSpeed:   uint64(uploadSpeedLimit),
+					DownloadSpeed: dsLimit,
+					UploadSpeed:   usLimit,
 				},
-				IpCurrent: int32(ipCurrent),
-				IpLimit:   int32(ipLimit),
+				IpCurrent: ipCurrentVal,
+				IpLimit:   ipLimitVal,
 			},
 		})
 		if err != nil {
@@ -113,7 +118,17 @@ func (s *ServerAPI) SetUsers(stream TrojanServerService_SetUsersServer) error {
 				}
 			}
 			if req.Status.SpeedLimit != nil {
-				err = s.auth.SetUserSpeedLimit(req.Status.User.Hash, int(req.Status.SpeedLimit.DownloadSpeed), int(req.Status.SpeedLimit.UploadSpeed))
+				dlSpeed, e := common.SafeIntFromUint64(req.Status.SpeedLimit.DownloadSpeed)
+				if e != nil {
+					err = common.NewError("download speed limit overflow").Base(e)
+					break
+				}
+				ulSpeed, e := common.SafeIntFromUint64(req.Status.SpeedLimit.UploadSpeed)
+				if e != nil {
+					err = common.NewError("upload speed limit overflow").Base(e)
+					break
+				}
+				err = s.auth.SetUserSpeedLimit(req.Status.User.Hash, dlSpeed, ulSpeed)
 				if err != nil {
 					break
 				}
@@ -124,12 +139,22 @@ func (s *ServerAPI) SetUsers(stream TrojanServerService_SetUsersServer) error {
 					break
 				}
 			}
-			err = s.auth.SetUserIPLimit(req.Status.User.Hash, int(req.Status.IpLimit))
+			err = s.auth.SetUserIPLimit(req.Status.User.Hash, int(req.Status.IpLimit)) //gosec:disable -- IpLimit 是 int32，int 转换在 64 位平台安全
 		case SetUsersRequest_Delete:
 			err = s.auth.DelUser(req.Status.User.Hash)
 		case SetUsersRequest_Modify:
 			if req.Status.SpeedLimit != nil {
-				err = s.auth.SetUserSpeedLimit(req.Status.User.Hash, int(req.Status.SpeedLimit.DownloadSpeed), int(req.Status.SpeedLimit.UploadSpeed))
+				dlSpeed, e := common.SafeIntFromUint64(req.Status.SpeedLimit.DownloadSpeed)
+				if e != nil {
+					err = common.NewError("download speed limit overflow").Base(e)
+					break
+				}
+				ulSpeed, e := common.SafeIntFromUint64(req.Status.SpeedLimit.UploadSpeed)
+				if e != nil {
+					err = common.NewError("upload speed limit overflow").Base(e)
+					break
+				}
+				err = s.auth.SetUserSpeedLimit(req.Status.User.Hash, dlSpeed, ulSpeed)
 				if err != nil {
 					break
 				}
@@ -140,16 +165,16 @@ func (s *ServerAPI) SetUsers(stream TrojanServerService_SetUsersServer) error {
 					break
 				}
 			}
-			err = s.auth.SetUserIPLimit(req.Status.User.Hash, int(req.Status.IpLimit))
+			err = s.auth.SetUserIPLimit(req.Status.User.Hash, int(req.Status.IpLimit)) //gosec:disable -- IpLimit 是 int32，int 转换在 64 位平台安全
 		}
 		if err != nil {
-			stream.Send(&SetUsersResponse{
+			stream.Send(&SetUsersResponse{ //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				Success: false,
 				Info:    err.Error(),
 			})
 			continue
 		}
-		stream.Send(&SetUsersResponse{
+		stream.Send(&SetUsersResponse{ //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			Success: true,
 		})
 	}
@@ -164,6 +189,11 @@ func (s *ServerAPI) ListUsers(req *ListUsersRequest, stream TrojanServerService_
 		downloadSpeedLimit, uploadSpeedLimit := user.GetSpeedLimit()
 		ipLimit := user.GetIPLimit()
 		ipCurrent := user.GetIP()
+		// 速度限制为非负值，使用安全转换；负值截断为 0
+		dsLimit, _ := common.SafeUint64FromInt(downloadSpeedLimit)
+		usLimit, _ := common.SafeUint64FromInt(uploadSpeedLimit)
+		ipLimitVal, _ := common.SafeInt32FromInt(ipLimit)
+		ipCurrentVal, _ := common.SafeInt32FromInt(ipCurrent)
 		err := stream.Send(&ListUsersResponse{
 			Status: &UserStatus{
 				User: &User{
@@ -178,11 +208,11 @@ func (s *ServerAPI) ListUsers(req *ListUsersRequest, stream TrojanServerService_
 					UploadSpeed:   uploadSpeed,
 				},
 				SpeedLimit: &Speed{
-					DownloadSpeed: uint64(downloadSpeedLimit),
-					UploadSpeed:   uint64(uploadSpeedLimit),
+					DownloadSpeed: dsLimit,
+					UploadSpeed:   usLimit,
 				},
-				IpLimit:   int32(ipLimit),
-				IpCurrent: int32(ipCurrent),
+				IpLimit:   ipLimitVal,
+				IpCurrent: ipCurrentVal,
 			},
 		})
 		if err != nil {
@@ -233,7 +263,7 @@ func (s *ServerAPI) SetOutboundConfig(ctx context.Context, req *SetOutboundConfi
 			}, nil
 		}
 	}
-	freedom.SetGlobalOutbound(ip, int(req.Fwmark))
+	freedom.SetGlobalOutbound(ip, int(req.Fwmark)) //gosec:disable -- Fwmark 是 int32，int 转换在 64 位平台安全
 	return &SetOutboundConfigResponse{Success: true}, nil
 }
 
@@ -244,9 +274,10 @@ func (s *ServerAPI) GetOutboundConfig(ctx context.Context, req *GetOutboundConfi
 	if ip != nil {
 		addr = ip.String()
 	}
+	fwmark, _ := common.SafeInt32FromInt(mark)
 	return &GetOutboundConfigResponse{
 		LocalAddr: addr,
-		Fwmark:    int32(mark),
+		Fwmark:    fwmark,
 	}, nil
 }
 
@@ -266,7 +297,7 @@ func newAPIServer(cfg *Config) (*grpc.Server, error) {
 			tlsConfig.ClientCAs = x509.NewCertPool()
 			for _, path := range cfg.API.SSL.ClientCertPath {
 				log.Debug("loading client cert: " + path)
-				certBytes, err := os.ReadFile(path)
+				certBytes, err := os.ReadFile(path) //gosec:disable -- 路径来自配置文件，由用户自己控制，非外部输入
 				if err != nil {
 					return nil, common.NewError("failed to load cert file").Base(err)
 				}

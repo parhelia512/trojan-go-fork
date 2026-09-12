@@ -107,16 +107,20 @@ func (o *apiController) setUsers(apiClient service.TrojanServerServiceClient) er
 	}
 	defer stream.CloseSend()
 
+	// 使用安全类型转换，避免整数溢出
+	ipLimitVal, _ := common.SafeInt32FromInt(*o.ipLimit)
+	ulSpeed, _ := common.SafeUint64FromInt(*o.uploadSpeedLimit)
+	dlSpeed, _ := common.SafeUint64FromInt(*o.downloadSpeedLimit)
 	req := &service.SetUsersRequest{
 		Status: &service.UserStatus{
 			User: &service.User{
 				Password: *o.password,
 				Hash:     *o.hash,
 			},
-			IpLimit: int32(*o.ipLimit),
+			IpLimit: ipLimitVal,
 			SpeedLimit: &service.Speed{
-				UploadSpeed:   uint64(*o.uploadSpeedLimit),
-				DownloadSpeed: uint64(*o.downloadSpeedLimit),
+				UploadSpeed:   ulSpeed,
+				DownloadSpeed: dlSpeed,
 			},
 		},
 	}

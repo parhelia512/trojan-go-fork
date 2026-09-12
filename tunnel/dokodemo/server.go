@@ -74,7 +74,7 @@ func (s *Server) dispatchLoop() {
 		case s.packetChan <- conn:
 		case <-s.ctx.Done():
 			// 下游已停止消费，退出以免 Close() 的 wg.Wait() 死锁
-			conn.Close()
+			conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			return
 		}
 
@@ -88,7 +88,7 @@ func (s *Server) dispatchLoop() {
 				s.mappingLock.Lock()
 				delete(s.mapping, conn.src.String())
 				s.mappingLock.Unlock()
-				conn.Close()
+				conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			}()
 			for {
 				select {
@@ -139,7 +139,7 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 func (s *Server) Close() error {
 	s.cancel()
 	// 先关闭监听解除 Accept 阻塞，否则 wg.Wait() 会永久死锁
-	s.tcpListener.Close()
+	s.tcpListener.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	err := s.udpListener.Close()
 	s.wg.Wait()
 	return err
@@ -156,7 +156,7 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 	}
 	udpListener, err := net.ListenPacket("udp", listenAddr.String())
 	if err != nil {
-		tcpListener.Close()
+		tcpListener.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return nil, common.NewError("failed to listen udp").Base(err)
 	}
 

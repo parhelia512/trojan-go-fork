@@ -131,7 +131,10 @@ func NewClient(ctx context.Context, _ tunnel.Client) (*Client, error) {
 				log.Debug("[Transport] Plugin environment variables:", cfg.TransportPlugin.Env)
 			}
 
-			cmd = exec.Command(cfg.TransportPlugin.Command, cfg.TransportPlugin.Arg...)
+			if err := validatePluginCommand(cfg.TransportPlugin.Command, cfg.TransportPlugin.Arg); err != nil {
+				return nil, common.NewError("invalid transport plugin configuration").Base(err)
+			}
+			cmd = exec.Command(cfg.TransportPlugin.Command, cfg.TransportPlugin.Arg...) //gosec:disable -- 已通过 validatePluginCommand 校验
 			cmd.Env = append(cmd.Env, cfg.TransportPlugin.Env...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stdout
@@ -142,7 +145,10 @@ func NewClient(ctx context.Context, _ tunnel.Client) (*Client, error) {
 			if log.ShouldLog(log.DebugLevel) {
 				log.Debug("[Transport] Configuring custom plugin...")
 			}
-			cmd = exec.Command(cfg.TransportPlugin.Command, cfg.TransportPlugin.Arg...)
+			if err := validatePluginCommand(cfg.TransportPlugin.Command, cfg.TransportPlugin.Arg); err != nil {
+				return nil, common.NewError("invalid transport plugin configuration").Base(err)
+			}
+			cmd = exec.Command(cfg.TransportPlugin.Command, cfg.TransportPlugin.Arg...) //gosec:disable -- 已通过 validatePluginCommand 校验
 			cmd.Env = append(cmd.Env, cfg.TransportPlugin.Env...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stdout
@@ -171,8 +177,8 @@ func NewClient(ctx context.Context, _ tunnel.Client) (*Client, error) {
 			if log.ShouldLog(log.DebugLevel) {
 				log.Debug("[Transport] Killing plugin process due to error")
 			}
-			cmd.Process.Kill()
-			cmd.Wait()
+			cmd.Process.Kill() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			cmd.Wait()         //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		}
 		return nil, err
 	}

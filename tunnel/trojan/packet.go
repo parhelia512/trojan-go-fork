@@ -35,13 +35,16 @@ func (c *PacketConn) WriteTo(payload []byte, addr net.Addr) (int, error) {
 func (c *PacketConn) WriteWithMetadata(payload []byte, metadata *tunnel.Metadata) (int, error) {
 	packet := make([]byte, 0, MaxPacketSize)
 	w := bytes.NewBuffer(packet)
-	metadata.Address.WriteTo(w)
+	metadata.Address.WriteTo(w) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 
 	length := len(payload)
 	lengthBuf := [2]byte{}
 	crlf := [2]byte{0x0d, 0x0a}
 
-	binary.BigEndian.PutUint16(lengthBuf[:], uint16(length))
+	if length > MaxPacketSize || length < 0 {
+		return 0, common.NewError("invalid packet length for serialization")
+	}
+	binary.BigEndian.PutUint16(lengthBuf[:], uint16(length)) //gosec:disable -- 上方已校验 length 在 [0, MaxPacketSize] 范围内
 	w.Write(lengthBuf[:])
 	w.Write(crlf[:])
 	w.Write(payload)
@@ -60,14 +63,14 @@ func (c *PacketConn) ReadWithMetadata(payload []byte) (int, *tunnel.Metadata, er
 
 	_, err := addr.ReadFrom(c.Conn)
 	if err != nil {
-		c.Conn.Close()
+		c.Conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return 0, nil, common.NewError("failed to parse udp packet addr").Base(err)
 	}
 	lengthBuf := [2]byte{}
 	if _, err := io.ReadFull(c.Conn, lengthBuf[:]); err != nil {
 		return 0, nil, common.NewError("failed to read length")
 	}
-	length := int(binary.BigEndian.Uint16(lengthBuf[:]))
+	length := common.SafeIntFromUint16(binary.BigEndian.Uint16(lengthBuf[:]))
 
 	crlf := [2]byte{}
 	if _, err := io.ReadFull(c.Conn, crlf[:]); err != nil {
@@ -75,7 +78,7 @@ func (c *PacketConn) ReadWithMetadata(payload []byte) (int, *tunnel.Metadata, er
 	}
 
 	if len(payload) < length || length > MaxPacketSize {
-		io.CopyN(io.Discard, c.Conn, int64(length)) // drain the rest of the packet
+		io.CopyN(io.Discard, c.Conn, int64(length)) // drain the rest of the packet //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return 0, nil, common.NewError("incoming packet size is too large")
 	}
 

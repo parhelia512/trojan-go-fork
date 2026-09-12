@@ -72,9 +72,9 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	}
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 	// 等待 WebSocket 升级请求限时:对端静默时不让本调用永久阻塞
-	conn.SetReadDeadline(time.Now().Add(handshakeTimeout))
+	conn.SetReadDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	req, err := http.ReadRequest(rw.Reader)
-	conn.SetReadDeadline(time.Time{})
+	conn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	if err != nil {
 		log.Debug("invalid http request")
 		err = common.NewError("not a valid http request: " + conn.RemoteAddr().String()).Base(err)

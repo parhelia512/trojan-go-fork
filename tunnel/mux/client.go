@@ -3,7 +3,6 @@ package mux
 import (
 	"context"
 	"fmt"
-	"math/rand/v2"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -19,7 +18,13 @@ import (
 type muxID uint64
 
 func generateMuxID() muxID {
-	return muxID(rand.Uint32())
+	id, err := common.SecureRandUint32()
+	if err != nil {
+		// crypto/rand 失败极罕见，降级为时间戳保证不阻塞连接建立
+		log.Warn("failed to generate secure mux ID, falling back to timestamp:", err)
+		return muxID(uint32(time.Now().UnixNano())) //gosec:disable -- 降级路径：截断为 uint32 仅用于避免 panic，不要求精确
+	}
+	return muxID(id)
 }
 
 type smuxClientInfo struct {
@@ -55,8 +60,8 @@ func (c *Client) Close() error {
 	}
 	c.clientPoolLock.Unlock()
 	for _, info := range pending {
-		info.client.Close()
-		info.underlayConn.Close()
+		info.client.Close()       //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		info.underlayConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	}
 	return nil
 }
@@ -96,8 +101,8 @@ func (c *Client) cleanLoop() {
 			}
 			c.clientPoolLock.Unlock()
 			for _, info := range dead {
-				info.client.Close()
-				info.underlayConn.Close()
+				info.client.Close()       //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+				info.underlayConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			}
 		case <-c.ctx.Done():
 			log.Debug("shutting down mux cleaner..")
@@ -110,8 +115,8 @@ func (c *Client) cleanLoop() {
 			clear(c.clientPool)
 			c.clientPoolLock.Unlock()
 			for _, info := range pending {
-				info.client.Close()
-				info.underlayConn.Close()
+				info.client.Close()       //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+				info.underlayConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			}
 			return
 		}
@@ -147,7 +152,7 @@ func (c *Client) newMuxClient() (*smuxClientInfo, error) {
 	client, err := smux.Client(conn, smuxConfig)
 	if err != nil {
 		_ = tracker.Error(err)
-		conn.Close()
+		conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return nil, common.NewError("mux failed to create client").Base(err)
 	}
 	_ = tracker.Success()
@@ -170,8 +175,8 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 		info.lastActiveTime.Store(time.Now().UnixNano())
 		if err != nil {
 			_ = streamTracker.Error(err)
-			info.underlayConn.Close()
-			info.client.Close()
+			info.underlayConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			info.client.Close()       //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			c.clientPoolLock.Lock()
 			delete(c.clientPool, info.id)
 			c.clientPoolLock.Unlock()

@@ -111,12 +111,12 @@ func (o *easy) Handle() error {
 		}
 	}
 
-	configJSON, err := json.Marshal(&config)
+	configJSON, err := json.Marshal(&config) //gosec:disable -- 密码字段是协议必需的配置项，日志输出已通过 sanitizeConfigJSON 脱敏
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Info("generated config:")
-	log.Info(string(configJSON))
+	log.Info(sanitizeConfigJSON(configJSON))
 	p, err := proxy.NewProxyFromConfigData(configJSON, true)
 	if err != nil {
 		log.Fatal(err)
@@ -141,4 +141,26 @@ func init() {
 		key:      flag.String("key", "server.key", "Key of the server"),
 		cert:     flag.String("cert", "server.crt", "Certificates of the server"),
 	})
+}
+
+// sanitizeConfigJSON 将配置 JSON 中的 password 字段脱敏后返回字符串，用于日志输出。
+// 传给 proxy.NewProxyFromConfigData 的原始 data 不受影响。
+func sanitizeConfigJSON(data []byte) string {
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return "[config parse error, not displayed]"
+	}
+	if pw, ok := raw["password"]; ok {
+		if pwSlice, ok := pw.([]any); ok {
+			for i := range pwSlice {
+				pwSlice[i] = "***"
+			}
+			raw["password"] = pwSlice
+		}
+	}
+	redacted, err := json.Marshal(raw)
+	if err != nil {
+		return "[config marshal error, not displayed]"
+	}
+	return string(redacted)
 }

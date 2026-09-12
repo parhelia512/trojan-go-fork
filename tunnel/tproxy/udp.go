@@ -126,22 +126,22 @@ func DialUDP(network string, laddr *net.UDPAddr, raddr *net.UDPAddr) (*net.UDPCo
 	}
 
 	if err = syscall.SetsockoptInt(fileDescriptor, syscall.SOL_SOCKET, syscall.SO_REUSEADDR, 1); err != nil {
-		syscall.Close(fileDescriptor)
+		syscall.Close(fileDescriptor) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return nil, &net.OpError{Op: "dial", Err: fmt.Errorf("set socket option: SO_REUSEADDR: %s", err)}
 	}
 
 	if err = syscall.SetsockoptInt(fileDescriptor, syscall.SOL_IP, syscall.IP_TRANSPARENT, 1); err != nil {
-		syscall.Close(fileDescriptor)
+		syscall.Close(fileDescriptor) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return nil, &net.OpError{Op: "dial", Err: fmt.Errorf("set socket option: IP_TRANSPARENT: %s", err)}
 	}
 
 	if err = syscall.Bind(fileDescriptor, localSocketAddress); err != nil {
-		syscall.Close(fileDescriptor)
+		syscall.Close(fileDescriptor) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return nil, &net.OpError{Op: "dial", Err: fmt.Errorf("socket bind: %s", err)}
 	}
 
 	if err = syscall.Connect(fileDescriptor, remoteSocketAddress); err != nil {
-		syscall.Close(fileDescriptor)
+		syscall.Close(fileDescriptor) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return nil, &net.OpError{Op: "dial", Err: fmt.Errorf("socket connect: %s", err)}
 	}
 

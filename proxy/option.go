@@ -26,10 +26,10 @@ func (o *Option) Name() string {
 func detectAndReadConfig(file string) ([]byte, bool, error) {
 	switch ext := strings.ToLower(file); {
 	case strings.HasSuffix(ext, ".json"):
-		data, err := os.ReadFile(file)
+		data, err := os.ReadFile(file) //gosec:disable -- 路径来自配置文件，由用户自己控制，非外部输入
 		return data, true, err
 	case strings.HasSuffix(ext, ".yaml"), strings.HasSuffix(ext, ".yml"):
-		data, err := os.ReadFile(file)
+		data, err := os.ReadFile(file) //gosec:disable -- 路径来自配置文件，由用户自己控制，非外部输入
 		return data, false, err
 	default:
 		return nil, false, common.NewError("unsupported config format: " + file + ". use .yaml or .json instead")

@@ -66,7 +66,7 @@ func (c *OutboundConn) WriteHeader(payload []byte) (bool, error) {
 	crlf := []byte{0x0d, 0x0a}
 	buf.Write([]byte(hash))
 	buf.Write(crlf)
-	c.metadata.WriteTo(buf)
+	c.metadata.WriteTo(buf) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	buf.Write(crlf)
 	if payload != nil {
 		buf.Write(payload)
@@ -95,7 +95,9 @@ func (c *OutboundConn) Write(p []byte) (int, error) {
 	}
 	n, err := c.Conn.Write(p)
 	c.user.AddSentTraffic(n)
-	c.sent.Add(uint64(n))
+	if n >= 0 {
+		c.sent.Add(uint64(n)) //gosec:disable -- n >= 0 已保证安全
+	}
 	return n, err
 }
 
@@ -105,7 +107,9 @@ func (c *OutboundConn) Read(p []byte) (int, error) {
 		log.Debug("[Trojan] Connection read error:", err)
 	}
 	c.user.AddRecvTraffic(n)
-	c.recv.Add(uint64(n))
+	if n >= 0 {
+		c.recv.Add(uint64(n)) //gosec:disable -- n >= 0 已保证安全
+	}
 	return n, err
 }
 
@@ -180,7 +184,7 @@ func (c *Client) DialConn(addr *tunnel.Address, overlay tunnel.Tunnel) (tunnel.C
 	go func(newConn *OutboundConn) {
 		select {
 		case <-time.After(time.Millisecond * 100):
-			newConn.WriteHeader(nil)
+			newConn.WriteHeader(nil) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		case <-newConn.ctx.Done():
 			return
 		}

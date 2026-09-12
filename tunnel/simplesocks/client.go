@@ -32,7 +32,7 @@ func (c *Client) DialConn(addr *tunnel.Address, t tunnel.Tunnel) (tunnel.Conn, e
 	}
 	_, err = simplesocks.Write(make([]byte, 0)) // send simplesocks header, let the server connect to the destination
 	if err != nil {
-		conn.Close()
+		conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return nil, common.NewError("simplesocks failed to send header").Base(err)
 	}
 
@@ -53,7 +53,7 @@ func (c *Client) DialPacket(t tunnel.Tunnel) (tunnel.PacketConn, error) {
 	}
 	_, err = metadata.WriteTo(conn)
 	if err != nil {
-		conn.Close()
+		conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return nil, common.NewError("simplesocks failed to write udp associate").Base(err)
 	}
 	return &PacketConn{

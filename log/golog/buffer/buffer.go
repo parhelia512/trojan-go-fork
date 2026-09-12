@@ -27,12 +27,12 @@ func (b *Buffer) AppendInt(val int, width int) {
 	reprCount := len(repr) - 1
 	for val >= 10 || width > 1 {
 		reminder := val / 10
-		repr[reprCount] = byte('0' + val - reminder*10)
+		repr[reprCount] = byte('0' + val - reminder*10) //gosec:disable -- val%10 结果在 0-9 范围内，转换安全
 		val = reminder
 		reprCount--
 		width--
 	}
-	repr[reprCount] = byte('0' + val)
+	repr[reprCount] = byte('0' + val) //gosec:disable -- 循环结束后 val 在 0-9 范围内，转换安全
 	b.Append(repr[reprCount:])
 }
 

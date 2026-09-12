@@ -181,7 +181,7 @@ func (a *Address) ReadFrom(r io.Reader) (int64, error) {
 			return total, common.NewError("failed to read IPv4").Base(err)
 		}
 		a.IP = buf[0:4]
-		a.Port = int(binary.BigEndian.Uint16(buf[4:6]))
+		a.Port = common.SafeIntFromUint16(binary.BigEndian.Uint16(buf[4:6]))
 	case IPv6:
 		var buf [18]byte
 		n, err := io.ReadFull(r, buf[:])
@@ -190,7 +190,7 @@ func (a *Address) ReadFrom(r io.Reader) (int64, error) {
 			return total, common.NewError("failed to read IPv6").Base(err)
 		}
 		a.IP = buf[0:16]
-		a.Port = int(binary.BigEndian.Uint16(buf[16:18]))
+		a.Port = common.SafeIntFromUint16(binary.BigEndian.Uint16(buf[16:18]))
 	case DomainName:
 		n, err := io.ReadFull(r, byteBuf[:])
 		total += int64(n)
@@ -215,7 +215,7 @@ func (a *Address) ReadFrom(r io.Reader) (int64, error) {
 		} else {
 			a.DomainName = string(buf[:length])
 		}
-		a.Port = int(binary.BigEndian.Uint16(buf[length : length+2]))
+		a.Port = common.SafeIntFromUint16(binary.BigEndian.Uint16(buf[length : length+2]))
 	default:
 		return total, common.NewError("invalid address type " + strconv.FormatInt(int64(a.AddressType), 10))
 	}
@@ -230,7 +230,10 @@ func (a *Address) WriteTo(w io.Writer) (int64, error) {
 	total := int64(n)
 	switch a.AddressType {
 	case DomainName:
-		n, err := w.Write([]byte{byte(len(a.DomainName))})
+		if len(a.DomainName) > 255 {
+			return total, common.NewError("domain name too long for serialization")
+		}
+		n, err := w.Write([]byte{byte(len(a.DomainName))}) //gosec:disable -- 上方已校验长度 <= 255
 		total += int64(n)
 		if err != nil {
 			return total, err
@@ -253,7 +256,11 @@ func (a *Address) WriteTo(w io.Writer) (int64, error) {
 		return total, err
 	}
 	port := [2]byte{}
-	binary.BigEndian.PutUint16(port[:], uint16(a.Port))
+	portVal, e := common.SafeUint16FromInt(a.Port)
+	if e != nil {
+		return total, common.NewError("invalid port number: out of range").Base(e)
+	}
+	binary.BigEndian.PutUint16(port[:], portVal)
 	n, err = w.Write(port[:])
 	total += int64(n)
 	return total, err

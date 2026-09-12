@@ -3,7 +3,7 @@ package proxy
 import (
 	"context"
 	"io"
-	"math/rand/v2"
+	"math"
 
 	"os"
 	"strings"
@@ -83,12 +83,12 @@ func (p *Proxy) Run() error {
 func (p *Proxy) Close() error {
 	p.cancel()
 	p.wg.Wait()
-	p.sink.Close()
+	p.sink.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	for _, source := range p.sources {
-		source.Close()
+		source.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	}
 	if p.logFile != nil {
-		p.logFile.Close()
+		p.logFile.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	}
 	return nil
 }
@@ -288,8 +288,12 @@ func RegisterProxyCreator(name string, creator Creator) {
 }
 
 func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
-	ctx := context.WithValue(context.Background(), Name+"_ID", rand.Int())
-	var err error
+	// 使用 crypto/rand 生成实例 ID，避免 math/rand 的可预测性
+	instanceID, err := common.SecureRandInt(math.MaxInt)
+	if err != nil {
+		return nil, common.NewError("failed to generate secure instance ID").Base(err)
+	}
+	ctx := context.WithValue(context.Background(), Name+"_ID", instanceID)
 	if isJSON {
 		ctx, err = config.WithJSONConfig(ctx, data)
 		if err != nil {
@@ -311,7 +315,8 @@ func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
 	log.SetLogLevel(log.LogLevel(cfg.LogLevel))
 	var logFile *os.File
 	if cfg.LogFile != "" {
-		file, err := os.OpenFile(cfg.LogFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
+		// 日志文件可能包含敏感信息，权限收紧为 0o600（仅 owner 可读写）
+		file, err := os.OpenFile(cfg.LogFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
 		if err != nil {
 			return nil, common.NewError("failed to open log file").Base(err)
 		}
@@ -321,7 +326,7 @@ func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
 	p, err := create(ctx)
 	if err != nil {
 		if logFile != nil {
-			logFile.Close()
+			logFile.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		}
 		return nil, err
 	}

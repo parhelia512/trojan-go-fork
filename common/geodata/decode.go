@@ -81,12 +81,12 @@ Loop:
 			if strings.EqualFold(string(container), code) {
 				count++
 				offset := -(1 + int64(varintLenByteLen) + int64(codeVarintLength))
-				f.Seek(offset, 1)               // back to the start of GeoIP or GeoSite varint
+				f.Seek(offset, 1)               // back to the start of GeoIP or GeoSite varint //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				advancedN = geoDataVarintLength // the number of bytes to be read in next round
 			} else {
 				count = 1
 				offset := int64(geoDataVarintLength) - int64(codeVarintLength) - int64(varintLenByteLen) - 1
-				f.Seek(offset, 1) // skip the unmatched GeoIP or GeoSite varint
+				f.Seek(offset, 1) // skip the unmatched GeoIP or GeoSite varint //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				advancedN = 1     // the next round will be the start of another GeoIPList or GeoSiteList
 			}
 		case 6: // matched GeoIP or GeoSite varint
@@ -99,7 +99,7 @@ Loop:
 }
 
 func Decode(filename, code string) ([]byte, error) {
-	f, err := os.Open(filename)
+	f, err := os.Open(filename) //gosec:disable -- 路径来自配置文件，由用户自己控制，非外部输入
 	if err != nil {
 		return nil, err
 	}

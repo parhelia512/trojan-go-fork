@@ -32,7 +32,7 @@ type Server struct {
 func (s *Server) Close() error {
 	s.cancel()
 	// 先关闭监听解除 Accept 阻塞，否则 wg.Wait() 会永久死锁
-	s.tcpListener.Close()
+	s.tcpListener.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	err := s.udpListener.Close()
 	s.wg.Wait()
 	return err
@@ -85,7 +85,7 @@ func (s *Server) packetDispatchLoop() {
 				log.Error(common.NewError("tproxy failed to read from udp socket").Base(err))
 				if readErrors >= 10 {
 					log.Error("tproxy udp socket persistently failing, closing server")
-					s.Close()
+					s.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 					return
 				}
 				time.Sleep(time.Millisecond * 100)
@@ -140,7 +140,7 @@ func (s *Server) packetDispatchLoop() {
 			case s.packetChan <- conn:
 			case <-s.ctx.Done():
 				// 下游已停止消费，关闭会话并退出，否则 Close() 的 wg.Wait() 死锁
-				conn.Close()
+				conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				return
 			}
 
@@ -177,12 +177,12 @@ func (s *Server) packetDispatchLoop() {
 						}
 						n, err := back.Write(info.payload)
 						if err != nil {
-							back.Close()
+							back.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 							log.Error(common.NewError("tproxy udp write error").Base(err))
 							return
 						}
 						log.Debug("recv packet, send back to", sessionConn.src, "payload", len(info.payload), "sent", n)
-						back.Close()
+						back.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 						if !timer.Stop() {
 							<-timer.C
 						}

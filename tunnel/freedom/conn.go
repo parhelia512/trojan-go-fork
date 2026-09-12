@@ -104,6 +104,6 @@ func (c *SocksPacketConn) ReadWithMetadata(payload []byte) (int, *tunnel.Metadat
 }
 
 func (c *SocksPacketConn) Close() error {
-	c.socksClient.Close()
+	c.socksClient.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	return c.PacketConn.Close()
 }

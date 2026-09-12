@@ -120,7 +120,7 @@ func (c *PacketConn) packetLoop() {
 
 func (c *PacketConn) Close() error {
 	c.cancel()
-	c.proxy.Close()
+	c.proxy.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	if c.tracker != nil {
 		c.tracker.Destroy("closed", 0, 0)
 	}

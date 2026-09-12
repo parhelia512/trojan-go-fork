@@ -47,8 +47,8 @@ func (s *Server) handleConn(conn tunnel.Conn, tracker *log.ConnectionTracker) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Error("panic in mux handler: ", fmt.Sprintf("%v", r))
-			tracker.Error(common.NewErrorf("panic: %v", r))
-			conn.Close()
+			tracker.Error(common.NewErrorf("panic: %v", r)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			conn.Close()                                    //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		}
 	}()
 
@@ -57,7 +57,7 @@ func (s *Server) handleConn(conn tunnel.Conn, tracker *log.ConnectionTracker) {
 	if err != nil {
 		log.Error(err)
 		_ = tracker.Error(err)
-		conn.Close()
+		conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return
 	}
 	_ = tracker.Success()

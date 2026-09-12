@@ -35,7 +35,7 @@ func (c *Client) Close() error {
 	c.cancel()
 	c.quicConnMutex.Lock()
 	if c.quicConn != nil {
-		c.quicConn.(interface {
+		c.quicConn.(interface { //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			CloseWithError(code uint32, reason string) error
 		}).CloseWithError(0, "client closed")
 		c.quicConn = nil
@@ -112,7 +112,7 @@ func (c *Client) keepAliveLoop() {
 			conn := c.quicConn
 			c.quicConnMutex.RUnlock()
 			if conn != nil {
-				conn.(interface{ SendDatagram([]byte) error }).SendDatagram([]byte{})
+				conn.(interface{ SendDatagram([]byte) error }).SendDatagram([]byte{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			}
 		case <-c.ctx.Done():
 			return
@@ -156,7 +156,7 @@ func (c *Client) DialConn(address *tunnel.Address, tun tunnel.Tunnel) (tunnel.Co
 		_ = tracker.Error(err)
 		log.Error(common.NewError("QUIC failed to open stream").Base(err))
 		c.quicConnMutex.Lock()
-		conn.(interface {
+		conn.(interface { //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			CloseWithError(code uint32, reason string) error
 		}).CloseWithError(0, "stream open failed")
 		if c.quicConn == conn {

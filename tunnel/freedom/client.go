@@ -125,14 +125,14 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 		}
 		socksAddr, err := net.ResolveUDPAddr("udp", resp.Address())
 		if err != nil {
-			packetConn.Close()
+			packetConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			closeSocksTCP()
 			return nil, common.NewError("freedom recv invalid socks bind addr").Base(err)
 		}
 		if socksAddr.IP.Equal(net.IPv4zero) {
 			ip, err := c.proxyAddr.ResolveIP()
 			if err != nil {
-				packetConn.Close()
+				packetConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				closeSocksTCP()
 				return nil, common.NewError("freedom failed to resolve ip").Base(err)
 			}

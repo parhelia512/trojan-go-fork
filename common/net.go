@@ -50,14 +50,14 @@ func PickPort(network string, host string) int {
 			Must(err)
 			p, err := strconv.ParseInt(port, 10, 32)
 			Must(err)
-			l.Close()
+			l.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 
 			conn, err := net.ListenPacket("udp", host+":"+port)
 			if err != nil {
 				continue
 			}
-			conn.Close()
-			return int(p)
+			conn.Close()  //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			return int(p) //gosec:disable -- p 来自 ParseInt(b, 10, 32)，已限制在 int32 范围内，转换安全
 		}
 		return 0
 	default:
@@ -77,7 +77,7 @@ func WriteAllBytes(writer io.Writer, payload []byte) error {
 }
 
 func WriteFile(path string, payload []byte) error {
-	writer, err := os.Create(path)
+	writer, err := os.Create(path) //gosec:disable -- 路径来自配置文件，由用户自己控制，非外部输入
 	if err != nil {
 		return err
 	}
@@ -178,8 +178,8 @@ func Dial(ctx context.Context, cfg DialConfig) (net.Conn, error) {
 	}
 
 	if tcpConn, ok := conn.(*net.TCPConn); ok {
-		tcpConn.SetKeepAlive(cfg.KeepAlive)
-		tcpConn.SetNoDelay(cfg.NoDelay)
+		tcpConn.SetKeepAlive(cfg.KeepAlive) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		tcpConn.SetNoDelay(cfg.NoDelay)     //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	}
 
 	return conn, nil

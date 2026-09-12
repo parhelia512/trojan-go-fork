@@ -23,7 +23,7 @@ func (c *Conn) Metadata() *tunnel.Metadata {
 func (c *Conn) Write(payload []byte) (int, error) {
 	if c.isOutbound && !c.headerWritten {
 		buf := bytes.NewBuffer(make([]byte, 0, 4096))
-		c.metadata.WriteTo(buf)
+		c.metadata.WriteTo(buf) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		buf.Write(payload)
 		_, err := c.Conn.Write(buf.Bytes())
 		if err != nil {

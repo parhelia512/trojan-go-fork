@@ -20,7 +20,7 @@ func (c *Conn) Write(p []byte) (n int, err error) {
 }
 
 func (c *Conn) Close() error {
-	c.Conn.Close()
+	c.Conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	return c.aeadConn.Close()
 }
 

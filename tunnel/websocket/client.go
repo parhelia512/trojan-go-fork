@@ -58,7 +58,7 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 	url := "ws://" + c.hostname + c.path
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		conn.Close()
+		conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return nil, common.NewError("invalid websocket url").Base(err)
 	}
 	request.Host = host
@@ -80,9 +80,9 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 	if err != nil {
 		_ = tracker.Error(err)
 		if resp != nil && resp.Body != nil {
-			resp.Body.Close()
+			resp.Body.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		}
-		conn.Close()
+		conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		log.Errorf("[WebSocket] [conn=%s] Handshake failed: %v", tracker.ConnID(), err)
 		return nil, common.NewError("websocket failed to handshake with server").Base(err)
 	}

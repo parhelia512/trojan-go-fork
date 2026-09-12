@@ -138,12 +138,12 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 			NextProtos:             c.alpn,
 		}, c.helloID)
 
-		conn.SetDeadline(time.Now().Add(handshakeTimeout))
+		conn.SetDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		err := uconn.Handshake()
-		conn.SetDeadline(time.Time{})
+		conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		if err != nil {
 			log.Error("[TLS] uTLS handshake failed:", err)
-			conn.Close()
+			conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			return nil, common.NewError("TLS handshake failed").Base(err)
 		}
 		_ = tracker.Success()
@@ -170,12 +170,12 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		NextProtos:             c.alpn,
 	})
 
-	conn.SetDeadline(time.Now().Add(handshakeTimeout))
+	conn.SetDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	err = tlsConn.Handshake()
-	conn.SetDeadline(time.Time{})
+	conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	if err != nil {
 		log.Error("[TLS] Handshake failed:", err)
-		conn.Close()
+		conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return nil, common.NewError("TLS handshake failed").Base(err)
 	}
 	_ = tracker.Success()
@@ -279,7 +279,7 @@ func getHelloID(fingerprint string) (utls.ClientHelloID, error) {
 }
 
 func loadCert(client *Client, certPath string) error {
-	caCertByte, err := os.ReadFile(certPath)
+	caCertByte, err := os.ReadFile(certPath) //gosec:disable -- 路径来自配置文件，由用户自己控制，非外部输入
 	if err != nil {
 		return common.NewError("failed to load cert file at path: " + certPath).Base(err)
 	}

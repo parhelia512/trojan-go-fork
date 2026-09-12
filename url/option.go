@@ -182,11 +182,11 @@ func (u *URLOption) Handle() error {
 		},
 	}
 
-	data, err := json.Marshal(&config)
+	data, err := json.Marshal(&config) //gosec:disable -- 密码字段是协议必需的配置项，日志输出已通过 sanitizeConfigJSON 脱敏
 	if err != nil {
 		return common.NewError("failed to marshal config").Base(err)
 	}
-	log.Debug(string(data))
+	log.Debug(sanitizeConfigJSON(data))
 
 	client, err := proxy.NewProxyFromConfigData(data, true)
 	if err != nil {
@@ -204,4 +204,33 @@ func init() {
 		urlStr:  flag.String("url", "", "Setup trojan-go client with a URL link"),
 		options: flag.String("url-option", "mux=true;listen=127.0.0.1:1080", "URL mode options (key=value pairs separated by semicolon)"),
 	})
+}
+
+// sanitizeConfigJSON 将配置 JSON 中的敏感字段（password）脱敏后返回字符串，用于日志输出。
+// 传给 proxy.NewProxyFromConfigData 的原始 data 不受影响。
+func sanitizeConfigJSON(data []byte) string {
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return "[config parse error, not displayed]"
+	}
+	// 脱敏顶层 password 字段（[]string 类型）
+	if pw, ok := raw["password"]; ok {
+		if pwSlice, ok := pw.([]any); ok {
+			for i := range pwSlice {
+				pwSlice[i] = "***"
+			}
+			raw["password"] = pwSlice
+		}
+	}
+	// 脱敏 shadowsocks.password 字段（string 类型）
+	if ss, ok := raw["shadowsocks"].(map[string]any); ok {
+		if _, ok := ss["password"]; ok {
+			ss["password"] = "***"
+		}
+	}
+	redacted, err := json.Marshal(raw)
+	if err != nil {
+		return "[config marshal error, not displayed]"
+	}
+	return string(redacted)
 }

@@ -2,11 +2,11 @@ package mux
 
 import (
 	"io"
-	"math/rand/v2"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
@@ -64,7 +64,13 @@ func (c *stickyConn) Close() error {
 		_ = c.Conn.SetWriteDeadline(time.Now().Add(closePaddingDeadline))
 		// 与原实现一致经两次 stickToPayload drain(原先经 c.Write 间接完成);
 		// 此处不能调 c.Write——writeMu 不可重入
-		payload := c.stickToPayload(append(c.stickToPayload(nil), padding[:rand.IntN(maxPaddingLength)]...))
+		padLen, padErr := common.SecureRandInt(maxPaddingLength)
+		if padErr != nil {
+			// 降级为无 padding，不影响协议正确性
+			log.Warn("failed to generate secure padding length:", padErr)
+			padLen = 0
+		}
+		payload := c.stickToPayload(append(c.stickToPayload(nil), padding[:padLen]...))
 		_, err = c.Conn.Write(payload)
 		if err != nil {
 			log.Error("failed to write padding:", err)

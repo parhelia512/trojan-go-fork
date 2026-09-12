@@ -214,7 +214,7 @@ func (c *Client) DialPacket(overlay tunnel.Tunnel) (tunnel.PacketConn, error) {
 	}
 	proxy, err := c.underlay.DialPacket(overlay)
 	if err != nil {
-		directConn.Close()
+		directConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		_ = tracker.Error(err)
 		return nil, common.NewError("router failed to dial udp (proxy)").Base(err)
 	}
@@ -459,7 +459,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		}
 		client.cidrs[info.strategy] = append(client.cidrs[info.strategy], &v2geodata.CIDR{
 			Ip:     ip,
-			Prefix: uint32(prefix),
+			Prefix: uint32(prefix), //gosec:disable -- prefix 来自 ParseInt(b, 10, 32)，已限制在 int32 范围内
 		})
 	}
 

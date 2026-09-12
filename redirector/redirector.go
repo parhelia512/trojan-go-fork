@@ -57,7 +57,7 @@ func injectForwardedHeader(inbound net.Conn, outbound net.Conn, clientIP string)
 				headerBuf.Write(buf[:n])
 			}
 			if headerBuf.Len() > 0 {
-				outbound.Write(headerBuf.Bytes())
+				outbound.Write(headerBuf.Bytes()) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			}
 			return err
 		}
@@ -68,7 +68,7 @@ func injectForwardedHeader(inbound net.Conn, outbound net.Conn, clientIP string)
 		}
 
 		if headerBuf.Len() > 65536 {
-			outbound.Write(headerBuf.Bytes())
+			outbound.Write(headerBuf.Bytes()) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			return common.NewError("headers too large")
 		}
 	}

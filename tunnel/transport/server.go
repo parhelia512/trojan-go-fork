@@ -40,8 +40,8 @@ func (s *Server) Close() error {
 	s.wg.Wait()
 	if s.cmd != nil && s.cmd.Process != nil {
 		log.Debug("[Transport Server] Killing transport plugin process")
-		s.cmd.Process.Kill()
-		s.cmd.Wait()
+		s.cmd.Process.Kill() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		s.cmd.Wait()         //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		log.Info("[Transport Server] Transport plugin process killed")
 	}
 	log.Info("[Transport Server] Transport server closed successfully")
@@ -77,13 +77,13 @@ func (s *Server) handleConnection(tcpConn net.Conn) {
 		rewindConn.SetBufferSize(512)
 
 		// 对端静默时不设截止时间会让 handler 永久阻塞，Close() 的 wg.Wait() 随之挂起
-		tcpConn.SetDeadline(time.Now().Add(firstByteTimeout))
+		tcpConn.SetDeadline(time.Now().Add(firstByteTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		r := bufio.NewReader(rewindConn)
 		httpReq, err := http.ReadRequest(r)
 		rewindConn.Rewind()
 		rewindConn.StopBuffering()
 		// 连接即将移交下游长期使用，必须解除截止时间
-		tcpConn.SetDeadline(time.Time{})
+		tcpConn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		if err != nil {
 			log.Debug("failed to parse http request, treating as trojan connection:", err)
 			select {
@@ -91,7 +91,7 @@ func (s *Server) handleConnection(tcpConn net.Conn) {
 				Conn: rewindConn,
 			}:
 			case <-s.ctx.Done():
-				rewindConn.Close()
+				rewindConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			}
 		} else {
 			log.Debug("plaintext http request: ", httpReq)
@@ -100,7 +100,7 @@ func (s *Server) handleConnection(tcpConn net.Conn) {
 				Conn: rewindConn,
 			}:
 			case <-s.ctx.Done():
-				rewindConn.Close()
+				rewindConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			}
 		}
 	} else {
@@ -109,7 +109,7 @@ func (s *Server) handleConnection(tcpConn net.Conn) {
 			Conn: tcpConn,
 		}:
 		case <-s.ctx.Done():
-			tcpConn.Close()
+			tcpConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		}
 	}
 }
@@ -166,7 +166,10 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 			log.Debug("new listen address", listenAddress)
 			log.Debug("plugin env", cfg.TransportPlugin.Env)
 
-			cmd = exec.Command(cfg.TransportPlugin.Command, cfg.TransportPlugin.Arg...)
+			if err := validatePluginCommand(cfg.TransportPlugin.Command, cfg.TransportPlugin.Arg); err != nil {
+				return nil, common.NewError("invalid transport plugin configuration").Base(err)
+			}
+			cmd = exec.Command(cfg.TransportPlugin.Command, cfg.TransportPlugin.Arg...) //gosec:disable -- 已通过 validatePluginCommand 校验
 			cmd.Env = append(cmd.Env, cfg.TransportPlugin.Env...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stdout
@@ -174,7 +177,10 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 				return nil, common.NewError("failed to start transport plugin").Base(err)
 			}
 		case "other":
-			cmd = exec.Command(cfg.TransportPlugin.Command, cfg.TransportPlugin.Arg...)
+			if err := validatePluginCommand(cfg.TransportPlugin.Command, cfg.TransportPlugin.Arg); err != nil {
+				return nil, common.NewError("invalid transport plugin configuration").Base(err)
+			}
+			cmd = exec.Command(cfg.TransportPlugin.Command, cfg.TransportPlugin.Arg...) //gosec:disable -- 已通过 validatePluginCommand 校验
 			cmd.Env = append(cmd.Env, cfg.TransportPlugin.Env...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stdout
@@ -193,8 +199,8 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 	tcpListener, err := common.Listen(ctx, listenCfg, "tcp", listenAddress.String())
 	if err != nil {
 		if cmd != nil && cmd.Process != nil {
-			cmd.Process.Kill()
-			cmd.Wait()
+			cmd.Process.Kill() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			cmd.Wait()         //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		}
 		return nil, common.NewError("transport failed to listen").Base(err)
 	}

@@ -1,12 +1,14 @@
 package recorder
 
 import (
+	"math"
 	"net"
 	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
 )
 
@@ -20,7 +22,12 @@ func init() { subscriberCapacity.Store(10) }
 // SetCapacity 设置每个订阅者的缓冲容量（须在 Subscribe 之前调用才有意义）
 func SetCapacity(n int) {
 	if n > 0 {
-		subscriberCapacity.Store(int32(n))
+		cap, err := common.SafeInt32FromInt(n)
+		if err != nil {
+			// 溢出时 clamp 到 MaxInt32
+			cap = math.MaxInt32
+		}
+		subscriberCapacity.Store(cap)
 	}
 }
 
@@ -49,7 +56,7 @@ func Add(hash string, clientAddr, targetAddr net.Addr, transport string, payload
 	targetHost, targetPort, _ := net.SplitHostPort(targetAddr.String())
 
 	record := Record{
-		Timestamp:  strconv.Itoa(int(time.Now().UnixMilli())),
+		Timestamp:  strconv.Itoa(int(time.Now().UnixMilli())), //gosec:disable -- UnixMilli 在 2927 年前远小于 MaxInt，转换安全
 		UserHash:   hash,
 		ClientIp:   clientIP,
 		ClientPort: clientPort,

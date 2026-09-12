@@ -42,10 +42,10 @@ func (s *Server) applyCongestionControl(conn *quic.Conn) {
 
 func (s *Server) Close() error {
 	s.cancel()
-	s.listener.(interface{ Close() error }).Close()
+	s.listener.(interface{ Close() error }).Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	s.wg.Wait()
 	s.activeConns.Range(func(key, value any) bool {
-		value.(interface {
+		value.(interface { //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			CloseWithError(code uint32, reason string) error
 		}).CloseWithError(0, "server closed")
 		return true
@@ -91,7 +91,7 @@ func (s *Server) acceptLoop() {
 
 func (s *Server) handleConnection(conn any, tracker *log.ConnectionTracker) {
 	defer func() {
-		conn.(interface {
+		conn.(interface { //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			CloseWithError(code uint32, reason string) error
 		}).CloseWithError(0, "connection closed")
 		s.activeConns.Delete(conn.(*quic.Conn))
@@ -242,7 +242,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 
 	listener, err := quic.Listen(packetConn, tlsConfig, quicConfig)
 	if err != nil {
-		packetConn.Close()
+		packetConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return nil, common.NewError("QUIC failed to listen").Base(err)
 	}
 

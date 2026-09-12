@@ -75,11 +75,11 @@ func (s *Server) acceptConnLoop() {
 		s.wg.Go(func() {
 			// 握手期间对端可能静默(如端口扫描);截止时间覆盖 version/method/
 			// command/address 全部握手读,移交下游前解除
-			conn.SetDeadline(time.Now().Add(handshakeTimeout))
+			conn.SetDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			handledConn, err := s.handshake(conn)
 			if err != nil {
 				log.Error(common.NewError("socks failed to handshake").Base(err))
-				conn.Close() // handshake 失败时确保关闭原始连接
+				conn.Close() // handshake 失败时确保关闭原始连接 //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				return
 			}
 			// 握手成功的连接所有权移交给上层（connChan 的使用方负责关闭），
@@ -90,29 +90,29 @@ func (s *Server) acceptConnLoop() {
 				err = s.connect(handledConn)
 				if err != nil {
 					log.Error(common.NewError("socks failed to respond connect").Base(err))
-					handledConn.Close()
+					handledConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 					return
 				}
 				// 连接即将移交下游长期使用,必须解除握手期截止时间
-				conn.SetDeadline(time.Time{})
+				conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				select {
 				case s.connChan <- handledConn:
 				case <-s.ctx.Done():
 					log.Debug("exiting")
-					handledConn.Close()
+					handledConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				}
 			case Associate:
 				log.Info("socks associate request from", handledConn.RemoteAddr(), "metadata", handledConn.Metadata())
 				err = s.associate(handledConn, handledConn.Metadata().Address)
 				if err != nil {
 					log.Error(common.NewError("socks failed to respond associate").Base(err))
-					handledConn.Close()
+					handledConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 					return
 				}
 				// associate 的 TCP 连接响应后即被放弃,无需解除截止时间
 			default:
 				log.Error("socks unknown command", handledConn.Metadata().Command)
-				handledConn.Close()
+				handledConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			}
 		})
 	}
@@ -120,7 +120,7 @@ func (s *Server) acceptConnLoop() {
 
 func (s *Server) Close() error {
 	s.cancel()
-	s.listenPacketConn.Close()
+	s.listenPacketConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	err := s.underlay.Close()
 	s.wg.Wait()
 	return err
@@ -269,7 +269,7 @@ func (s *Server) packetDispatchLoop() {
 				log.Info("socks new udp session from", src)
 			case <-s.ctx.Done():
 				// 下游已停止消费，必须退出，否则关闭时该 goroutine 永久阻塞导致泄露
-				conn.Close()
+				conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				log.Debug("exiting")
 				return
 			}

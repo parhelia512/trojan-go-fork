@@ -41,7 +41,7 @@ func NewErrorf(format string, a ...any) *Error {
 func Must(err error) {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "FATAL ERROR:", err)
-		os.Stderr.WriteString("Stack trace:\n")
+		os.Stderr.WriteString("Stack trace:\n") //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		debug.PrintStack()
 		panic(err)
 	}
@@ -50,7 +50,7 @@ func Must(err error) {
 func Must2(_ any, err error) {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "FATAL ERROR:", err)
-		os.Stderr.WriteString("Stack trace:\n")
+		os.Stderr.WriteString("Stack trace:\n") //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		debug.PrintStack()
 		panic(err)
 	}

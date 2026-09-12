@@ -45,7 +45,7 @@ func (s *Server) acceptLoop() {
 		_, err = metadata.ReadFrom(conn)
 		if err != nil {
 			log.Error(common.NewError("simplesocks server faield to read header").Base(err))
-			conn.Close()
+			conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			continue
 		}
 		switch metadata.Command {
@@ -57,7 +57,7 @@ func (s *Server) acceptLoop() {
 			}:
 			case <-s.ctx.Done():
 				// 下游已停止消费，关闭连接并退出，否则 Close() 的 wg.Wait() 死锁
-				conn.Close()
+				conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				return
 			}
 			Record(conn, metadata)
@@ -67,12 +67,12 @@ func (s *Server) acceptLoop() {
 				Conn: conn,
 			}:
 			case <-s.ctx.Done():
-				conn.Close()
+				conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				return
 			}
 		default:
 			log.Error(common.NewErrorf("simplesocks unknown command %d", metadata.Command))
-			conn.Close()
+			conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		}
 	}
 }

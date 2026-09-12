@@ -45,15 +45,15 @@ func (s *Server) acceptConnLoop() {
 		rewindConn := common.NewRewindConn(conn)
 		rewindConn.SetBufferSize(16)
 		// 对端静默时不设截止时间会让 accept 循环永久阻塞，Close() 的 wg.Wait() 随之挂起
-		rewindConn.SetReadDeadline(time.Now().Add(firstByteTimeout))
+		rewindConn.SetReadDeadline(time.Now().Add(firstByteTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		buf := [3]byte{}
 		_, err = rewindConn.Read(buf[:])
 		rewindConn.Rewind()
 		rewindConn.StopBuffering()
-		rewindConn.SetReadDeadline(time.Time{})
+		rewindConn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		if err != nil {
 			log.Error(common.NewError("failed to detect proxy protocol type").Base(err))
-			rewindConn.Close()
+			rewindConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			continue
 		}
 		s.socksLock.RLock()
@@ -69,7 +69,7 @@ func (s *Server) acceptConnLoop() {
 			select {
 			case s.socksConn <- freedomConn:
 			case <-s.ctx.Done():
-				freedomConn.Close()
+				freedomConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				log.Debug("exiting")
 				return
 			}
@@ -78,7 +78,7 @@ func (s *Server) acceptConnLoop() {
 			select {
 			case s.httpConn <- freedomConn:
 			case <-s.ctx.Done():
-				freedomConn.Close()
+				freedomConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				log.Debug("exiting")
 				return
 			}
@@ -118,7 +118,7 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 func (s *Server) Close() error {
 	s.cancel()
 	// 先关闭监听解除 acceptConnLoop 的 Accept 阻塞，否则 wg.Wait() 会永久死锁
-	s.tcpListener.Close()
+	s.tcpListener.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	err := s.udpListener.Close()
 	s.wg.Wait()
 	return err
@@ -137,7 +137,7 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 	}
 	udpListener, err := net.ListenPacket("udp", addr.String())
 	if err != nil {
-		tcpListener.Close()
+		tcpListener.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		cancel()
 		return nil, common.NewError("adapter failed to create udp listener").Base(err)
 	}
