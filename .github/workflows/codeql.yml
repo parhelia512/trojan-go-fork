@@ -63,6 +63,12 @@ jobs:
 
         # Details on CodeQL's query packs refer to : https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
         queries: +security-and-quality
+        # 豁免说明：
+        # - go/log-injection: 日志输入已通过 log 包的 SanitizeLogInput/SanitizeString 集中净化，
+        #   剥离换行/制表符、HTML 转义、脱敏敏感数据，故日志注入告警为误报。
+        # - go/weak-sensitive-data-hashing: SHA224(password) 是 trojan 线协议强制要求：
+        #   客户端与服务端必须从配置密码派生相同的确定性 56 字节 hex token（见 common.SHA224String）。
+        #   带随机 salt 的 KDF（如 bcrypt）双端结果不一致，会完全破坏认证，故此告警为协议实现的误报。
         config: |
           paths-ignore:
             - '**/vendor'
@@ -71,20 +77,11 @@ jobs:
             - '**/generated'
           query-filters:
             - exclude:
-                id: go/log-injection
-                reason: >-
-                  User input is sanitized centrally via SanitizeLogInput/SanitizeString
-                  in the log package before being passed to logging sinks. These functions
-                  strip newlines, carriage returns, tabs, escape HTML, and redact sensitive data.
+                queries:
+                  - go/log-injection
             - exclude:
-                id: go/weak-sensitive-data-hashing
-                reason: >-
-                  SHA224(password) is mandated by the trojan wire protocol: both client
-                  and server must derive the same deterministic 56-byte hex token from the
-                  configured password (see common.SHA224String). A randomized KDF such as
-                  bcrypt yields different tokens on each side and breaks authentication
-                  entirely, so this heuristic is a false positive for a protocol
-                  implementation; it is not password storage.
+                queries:
+                  - go/weak-sensitive-data-hashing
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, Go, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
