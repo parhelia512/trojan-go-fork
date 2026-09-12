@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+.codeartsdoer
 
 # Test binary, built with `go test -c`
 *.test
